@@ -4,12 +4,13 @@
  * 
  * @author  Michael Kölling and David J. Barnes
  * @version 2016.02.29
+ * @edited by Franco Acosta
  */
 public enum CommandWord
 {
     // A value for each command word along with its
     // corresponding user interface string.
-    GO("go"), QUIT("quit"), HELP("help"), UNKNOWN("?");
+    GO("go"), QUIT("quit"), LOOK("look"), BACK("back"), TAKE("take"), DROP("drop"), HELP("help"), UNKNOWN("?");
     
     // The command string.
     private String commandString;
