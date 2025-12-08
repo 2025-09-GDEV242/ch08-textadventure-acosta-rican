@@ -1,4 +1,8 @@
-/**
+import java.util.Stack;     //imported for 8.26
+
+/** CHAPTER 8: TEXT ADVENTURE
+ * edited by Franco Acosta
+ * 
  *  This class is the main class of the "World of Zuul" application. 
  *  "World of Zuul" is a very simple, text based adventure game.  Users 
  *  can walk around some scenery. That's all. It should really be extended 
@@ -18,8 +22,9 @@
 public class Game 
 {
     private Parser parser;
-    private Room currentRoom;
-        
+    private Player player;                              //added for 8.28
+    private Room previousRoom;                          //added for 8.23
+    
     /**
      * Create the game and initialise its internal map.
      */
@@ -30,23 +35,61 @@ public class Game
     }
 
     /**
+     * EXERCISE 8.14:
+     * Add the 'look command to Game class.
+     * @author  Michael Kölling and David J. Barnes
+     * @version 2016.02.29
+        */
+    private void look()
+    {
+        System.out.println(player.getCurrentRoomDescription());
+    }
+    
+    /**
+     * EXERCISE 8.23:
+     * Add 'back' command to return to previous room.
+     * Null at start of game.
+     */
+    private void goBack() {
+        player.goBack();
+    }
+    
+    /**
      * Create all the rooms and link their exits together.
      */
     private void createRooms()
     {
-        Room outside, theater, pub, lab, office;
+        Room outside, theater, pub, lab, office, cafeteria, gym, lounge; //added cafeteria, gym, and lounge
       
-        // create the rooms
+        // create the rooms, 8 minimum.
         outside = new Room("outside the main entrance of the university");
         theater = new Room("in a lecture theater");
         pub = new Room("in the campus pub");
         lab = new Room("in a computing lab");
         office = new Room("in the computing admin office");
+        cafeteria = new Room("in the campus cafeteria");
+        gym = new Room("in the university's gym");
+        lounge = new Room("in the student lounge");
+        
+        // EXERCISE 8.20: Create and assign items:
+        outside.addItem(new Item("sword", 4));
+        outside.addItem(new Item("old shield", 2));
+        theater.addItem(new Item("book", 3));
+        theater.addItem(new Item("pencil", 1));
+        pub.addItem(new Item("key", 1));
+        lab.addItem(new Item("heater", 2));
+        lab.addItem(new Item("calculator", 3));
+        office.addItem(new Item("coin", 1));
+        cafeteria.addItem(new Item("scissors", 2));
+        cafeteria.addItem(new Item("food",1));
+        gym.addItem(new Item("shield", 5));
+        lounge.addItem(new Item("potion", 2));
         
         // initialise room exits
         outside.setExit("east", theater);
         outside.setExit("south", lab);
         outside.setExit("west", pub);
+        outside.setExit("north", cafeteria);
 
         theater.setExit("west", outside);
 
@@ -56,8 +99,19 @@ public class Game
         lab.setExit("east", office);
 
         office.setExit("west", lab);
+        
+        cafeteria.setExit("east", gym);
+        cafeteria.setExit("west", lounge);
+        cafeteria.setExit("south", outside);
+        
+        gym.setExit("west", cafeteria);
+        gym.setExit("south", theater);
+        
+        lounge.setExit("east", cafeteria);
+        lounge.setExit("south", pub);
 
-        currentRoom = outside;  // start game outside
+        player = new Player(outside);
+        previousRoom = null;
     }
 
     /**
@@ -88,7 +142,7 @@ public class Game
         System.out.println("World of Zuul is a new, incredibly boring adventure game.");
         System.out.println("Type '" + CommandWord.HELP + "' if you need help.");
         System.out.println();
-        System.out.println(currentRoom.getLongDescription());
+        System.out.println(player.getCurrentRoomDescription());
     }
 
     /**
@@ -114,6 +168,22 @@ public class Game
             case GO:
                 goRoom(command);
                 break;
+            
+            case LOOK:
+                look();
+                break;
+                
+            case TAKE:
+                takeItem(command);
+                break;
+            
+            case DROP:
+                dropItem(command);
+                break;
+                
+            case BACK:
+                goBack();
+                break;
 
             case QUIT:
                 wantToQuit = quit(command);
@@ -123,6 +193,34 @@ public class Game
     }
 
     // implementations of user commands:
+    
+    /**
+     * Command method to take item from room.
+     * @params command word.
+     */
+    private void takeItem(Command command) {
+        if (!command.hasSecondWord()) {
+            System.out.println("Take what?");
+            return;
+        }
+
+        String itemName = command.getSecondWord();
+        player.takeItem(itemName);
+    }
+    
+    /**
+     * Command method to drop item.
+     * @null
+     */
+    private void dropItem(Command command) {
+        if (!command.hasSecondWord()) {
+            System.out.println("Drop what?");
+            return;
+        }
+
+        String itemName = command.getSecondWord();
+        player.dropItem(itemName);
+    }
 
     /**
      * Print out some help information.
@@ -152,16 +250,8 @@ public class Game
 
         String direction = command.getSecondWord();
 
-        // Try to leave current room.
-        Room nextRoom = currentRoom.getExit(direction);
+        player.goRoom(direction);
 
-        if (nextRoom == null) {
-            System.out.println("There is no door!");
-        }
-        else {
-            currentRoom = nextRoom;
-            System.out.println(currentRoom.getLongDescription());
-        }
     }
 
     /** 
@@ -176,7 +266,17 @@ public class Game
             return false;
         }
         else {
-            return true;  // signal that we want to quit
+            return true;  // signal to quit
         }
     }
+    
+    /**
+     * Main method for the Game class.
+     * @null
+     */
+    public static void main(String[] args) {
+        Game game = new Game();
+        game.play();
+    }
+
 }
