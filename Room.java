@@ -1,6 +1,8 @@
 import java.util.Set;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.ArrayList;     //imported for 8.22
+import java.util.Iterator;      //imported for 8.30
 
 /**
  * Class Room - a room in an adventure game.
@@ -14,14 +16,18 @@ import java.util.Iterator;
  * 
  * @author  Michael Kölling and David J. Barnes
  * @version 2016.02.29
+ * @edited by Franco Acosta
  */
 
 public class Room 
 {
-    private String description;
-    private HashMap<String, Room> exits;        // stores exits of this room.
-
+    private String description;                 //stores room's description
+    private HashMap<String, Room> exits;        //stores exits of this room.
+    private Item item;                          //lets room have item
+    private ArrayList<Item> items;              //lets room have multiple items (8.22)
+    
     /**
+     * modified for 8.22
      * Create a room described "description". Initially, it has
      * no exits. "description" is something like "a kitchen" or
      * "an open court yard".
@@ -31,8 +37,67 @@ public class Room
     {
         this.description = description;
         exits = new HashMap<>();
+        items = new ArrayList<>();
+    }
+    
+    
+    /**
+     * Method to return current item.
+     * @return Item.
+     */
+    public Item getItem()
+    {
+        return item;
+    }
+    
+    /**
+     * EXERCISE 8.20
+     * Setter method to give the room an item.
+     * @set room's item.
+     */
+    public void setItem(Item item)
+    {
+        this.item = item;
+    }    
+    
+    /**
+     * EXCERCISE 8.22
+     * Method to add item to room.
+     * @param item.
+     */
+    public void addItem(Item item) {
+        items.add(item);
+    }
+    
+    /**
+     * Get an item by name
+     * @returns Item
+     */
+    public Item getItem(String name) {
+        for (Item item : items) {
+            if (item.getDescription().equalsIgnoreCase(name)) {
+                return item;
+            }
+        }
+        return null;
     }
 
+    /**
+     * / Remove an item by name
+     * @params Item name
+     */
+    public void removeItem(String name) {
+        Iterator<Item> it = items.iterator();
+
+        while (it.hasNext()) {
+            Item item = it.next();
+            if (item.getDescription().equalsIgnoreCase(name)) {
+            it.remove();
+            return;
+            }
+        }
+    }
+    
     /**
      * Define an exit from this room.
      * @param direction The direction of the exit.
@@ -60,9 +125,18 @@ public class Room
      */
     public String getLongDescription()
     {
-        return "You are " + description + ".\n" + getExitString();
-    }
+        String description = "You are " + this.description + ".\n" + getExitString();
 
+        if (!items.isEmpty()) { //lists all the items in the room
+            description += "\nItems here:";
+            for (Item item : items) {
+                description += "\n  " + item.toString();
+            }
+        }
+    
+        return description;
+    }
+    
     /**
      * Return a string describing the room's exits, for example
      * "Exits: north west".
